@@ -1,58 +1,82 @@
 import tkinter as tk
 from tkinter import filedialog
-from PIL import Image, ImageTk
-import requests
-from io import BytesIO
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from mpl_toolkits.mplot3d import Axes3D
+from stl import mesh
 
-def load_image_from_url():
-    """ Load an image from the URL specified in the URL entry field. """
-    url = url_entry.get()
-    try:
-        response = requests.get(url)
-        img_data = response.content
-        img = Image.open(BytesIO(img_data))
-        img.thumbnail((250, 250))  # Resize the image to fit the display area
-        img_photo = ImageTk.PhotoImage(img)
-        image_label.configure(image=img_photo)
-        image_label.image = img_photo  # Keep a reference to avoid garbage collection
-    except Exception as e:
-        print(f"Error loading image: {e}")
+# Function to fetch or simulate brain wave data
+def fetch_brain_wave_data():
+    x = np.linspace(-5, 5, 100)
+    y = np.linspace(-5, 5, 100)
+    x, y = np.meshgrid(x, y)
+    z = np.sin(np.sqrt(x**2 + y**2))
+    return x, y, z
 
-def save_image():
-    """ Save the currently displayed image. """
-    file_path = filedialog.asksaveasfilename(defaultextension=".png",
-                                             filetypes=[("PNG files", "*.png"), 
-                                                        ("JPEG files", "*.jpg"), 
-                                                        ("All files", "*.*")])
+# Function to plot brain wave
+def plot_brain_wave():
+    x, y, z = fetch_brain_wave_data()
+
+    # Create a 3D plot
+    fig = plt.Figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(x, y, z, cmap='viridis')
+
+    # Update the canvas
+    canvas.get_tk_widget().pack_forget()
+    canvas.__init__(fig, master=root)  # Re-initialize canvas
+    canvas.draw()
+    canvas.get_tk_widget().pack(padx=10, pady=10)
+
+# Function to save the current plot as STL
+def save_as_stl():
+    x, y, z = fetch_brain_wave_data()
+    num_cells = len(x) * len(y)
+    vertices = np.zeros((num_cells, 3))
+    faces = []
+
+    for i in range(len(x)):
+        for j in range(len(y)):
+            vertices[i * len(y) + j] = [x[i, j], y[i, j], z[i, j]]
+            if i < len(x) - 1 and j < len(y) - 1:
+                faces.append([i * len(y) + j, (i+1) * len(y) + j, i * len(y) + j+1])
+                faces.append([(i+1) * len(y) + j, (i+1) * len(y) + j+1, i * len(y) + j+1])
+
+    brain_wave_mesh = mesh.Mesh(np.zeros(len(faces), dtype=mesh.Mesh.dtype))
+    for i, f in enumerate(faces):
+        for j in range(3):
+            brain_wave_mesh.vectors[i][j] = vertices[f[j]]
+
+    # File dialog for saving the file
+    file_path = filedialog.asksaveasfilename(defaultextension=".stl", filetypes=[("STL files", "*.stl")])
     if file_path:
-        img = image_label.image._PhotoImage__photo  # Access the underlying PhotoImage
-        img.write(file_path, format='png')
+        brain_wave_mesh.save(file_path)
 
+# Exit application
 def exit_app():
-    """ Exit the application. """
     root.destroy()
 
 # Create the main window
 root = tk.Tk()
-root.title("Image Viewer")
+root.title("Brain Wave Visualizer")
 
-# URL Entry and Submit button
-url_entry = tk.Entry(root, width=50)
-url_entry.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
+# Fetch and Plot button
+fetch_button = tk.Button(root, text="Fetch and Plot Brain Wave", command=plot_brain_wave)
+fetch_button.pack(side=tk.TOP, pady=5)
 
-submit_button = tk.Button(root, text="Get", command=load_image_from_url)
-submit_button.pack(side=tk.TOP, pady=5)
+# Save as STL button
+save_button = tk.Button(root, text="Save as STL", command=save_as_stl)
+save_button.pack(side=tk.TOP, pady=5)
 
-# Image display area
-image_label = tk.Label(root)
-image_label.pack(padx=10, pady=10)
+# Canvas for matplotlib plot
+fig = plt.Figure()
+canvas = FigureCanvasTkAgg(fig, master=root)
+canvas.get_tk_widget().pack(padx=10, pady=10)
 
-# Save and Exit buttons
-save_button = tk.Button(root, text="Save Image", command=save_image)
-save_button.pack(side=tk.LEFT, padx=10, pady=10)
-
+# Exit button
 exit_button = tk.Button(root, text="Exit", command=exit_app)
-exit_button.pack(side=tk.RIGHT, padx=10, pady=10)
+exit_button.pack(side=tk.BOTTOM, padx=10, pady=10)
 
 # Start the GUI event loop
 root.mainloop()
