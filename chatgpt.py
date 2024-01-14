@@ -1,28 +1,41 @@
 import numpy as np
-from mpl_toolkits import mplot3d
-import matplotlib.pyplot as plt
 from stl import mesh
 
-# Generate coordinates
-diameter = 10
-height = 10
-resolution = 100
+def generate_cylinder_model():
+    # Cylinder dimensions
+    inner_diameter = 5
+    outer_diameter = 10
+    height = 100
 
-theta = np.linspace(0, 2 * np.pi, resolution)
-z = np.linspace(0, height, resolution)
-r = np.linspace(5, diameter/2, resolution) 
+    # Generate waveform data (replace with your actual brain wave waveform data)
+    waveform = np.sin(np.linspace(0, 2*np.pi, 100))
 
-z, theta = np.meshgrid(z, theta)
-x = r * np.cos(theta)
-y = r * np.sin(theta)
+    # Calculate number of points on the perimeter
+    num_points = len(waveform)
+    
+    # Calculate the coordinates of the points on the perimeter
+    theta = np.linspace(0, 2*np.pi, num_points, endpoint=False)
+    x = (outer_diameter/2) * np.cos(theta)
+    y = (outer_diameter/2) * np.sin(theta)
+    z = (waveform * 2) + (outer_diameter/2)
+    
+    # Create the STL mesh
+    vertices = np.column_stack((x, y, z))
+    faces = []
+    for i in range(num_points-1):
+        faces.append([i, i+1, num_points+i+1])
+        faces.append([i, num_points+i+1, num_points+i])
+    faces.append([num_points-1, 0, num_points])
+    faces.append([num_points-1, num_points, 2*num_points-1])
+    
+    # Create the mesh object
+    mesh_data = mesh.Mesh(np.zeros(len(faces), dtype=mesh.Mesh.dtype))
+    for i, f in enumerate(faces):
+        for j in range(3):
+            mesh_data.vectors[i][j] = vertices[f[j]]
+    
+    # Save the mesh as STL file
+    mesh_data.save('cylinder.stl')
 
-# Plot 3D brain wave model
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(x, y, z, alpha=0.7)
-
-# Save the 3D model to an STL file
-your_mesh = mesh.Mesh(np.zeros(x.shape[0], dtype=mesh.Mesh.dtype))
-for i in range(x.shape[0]):
-    your_mesh.vectors[i] = np.column_stack([x[i], y[i], z[i]])
-your_mesh.save('brain_wave_model.stl')
+# Generate the cylinder model
+generate_cylinder_model()

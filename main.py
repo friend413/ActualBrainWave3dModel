@@ -1,27 +1,47 @@
 import numpy as np
-import requests
-from mpl_toolkits import mplot3d
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-from stl import mesh
 
-# Initialize Variables
+# Parameters
+thickness = 5    
+inner_diam = 5      
+outer_diam = 10
+num_points = 100
 
-outer_radius = 5
-inner_radius = 2.5
-height = 0.5
-# server_url  = "https://brainwave.com/api/data"
-server_url = "https://business-card-maker-6c95b-default-rtdb.firebaseio.com/global.json"
+# Generate cylinder mesh
+theta = np.linspace(0, 2*np.pi, num_points)     
+z = np.linspace(-thickness/2, thickness/2, 10) 
 
-# Input Data
+r_inner = inner_diam/2   
+r_outer = outer_diam/2
 
-response = requests.get( server_url )
+# Sample wave data     
+left_waves = 0.5*np.sin(3*theta)      
+right_waves = 0.7*np.cos(2*theta) 
 
-if response.status_code == 200:
-    data = response.json()
-    brain_wave_data = data["brain_wave"]
-    
-else:
-    print("Failed to retireve data, Status code", response.status_code)
+x = None
+y = None
+z = None
 
-# Main View
+def add_brainwave_data(left, right):
 
+  global x, y, z
+
+  x_left = r_inner*np.cos(theta)      
+  y_left = r_inner*np.sin(theta)
+  z_left = z.reshape(-1)    
+
+  x_right = r_outer*np.cos(theta) + right 
+  y_right = r_outer*np.sin(theta)
+  z_right = z.reshape(-1)     
+
+  x = np.concatenate((x_left, x_right))
+  y = np.concatenate((y_left, y_right)) 
+  z = np.concatenate((z_left, z_right))
+
+ 
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+add_brainwave_data(left_waves, right_waves)
+ax.plot_surface(x, y, z)
+plt.show()

@@ -5,13 +5,44 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from mpl_toolkits.mplot3d import Axes3D
 from stl import mesh
+import requests
 
 # Function to fetch or simulate brain wave data
 def fetch_brain_wave_data():
-    x = np.linspace(-5, 5, 100)
-    y = np.linspace(-5, 5, 100)
-    x, y = np.meshgrid(x, y)
-    z = np.sin(np.sqrt(x**2 + y**2))
+    # url = url_entry.get()
+    # try:
+    #     response = requests.get(url)
+    #     response.raise_for_status()
+
+    #     # Parse the data from the server
+    #     # This is just a placeholder - you need to adapt this based on your server's data format
+    #     data = response.json()
+    #     x = np.array(data['x'])
+    #     y = np.array(data['y'])
+    #     z = np.array(data['z'])
+    #     return x, y, z
+    # except requests.RequestException as e:
+    #     print(f"Error fetching data: {e}")
+    #     return None, None, None
+
+    x = np.linspace(0, 2 * np.pi, 100)
+    y = np.sin( x ) + 3.5
+    print(y)
+    # x, y = np.meshgrid(x, y)
+    # z = np.sin(np.sqrt(x**2 + y**2))
+    z = np.sin( ( x - x ) + np.pi / 2 )
+    # Sample data
+    # x = [1, 2, 3, 4, 5]
+    # y = [2, 3, 4, 5, 6]
+    # z = [3, 4, 5, 6, 7]
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(x, y, zs=0, zdir='z', label='Outer Circular Base')
+
+
+    # Show the plot
+    plt.show()
     return x, y, z
 
 # Function to plot brain wave
@@ -60,6 +91,10 @@ def exit_app():
 # Create the main window
 root = tk.Tk()
 root.title("Brain Wave Visualizer")
+
+# URL Entry Field
+url_entry = tk.Entry(root, width=50)
+url_entry.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
 
 # Fetch and Plot button
 fetch_button = tk.Button(root, text="Fetch and Plot Brain Wave", command=plot_brain_wave)
