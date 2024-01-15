@@ -25,9 +25,9 @@ def fetch_brain_wave_data():
     #     print(f"Error fetching data: {e}")
     #     return None, None, None
 
-    x = np.linspace(0, 2 * np.pi, 100)
-    y = np.sin( x ) + 3.5
-    print(y)
+    x = np.linspace(0, 2*np.pi, 100)
+    y = np.sin( x )
+
     # x, y = np.meshgrid(x, y)
     # z = np.sin(np.sqrt(x**2 + y**2))
     z = np.sin( ( x - x ) + np.pi / 2 )
@@ -36,24 +36,31 @@ def fetch_brain_wave_data():
     # y = [2, 3, 4, 5, 6]
     # z = [3, 4, 5, 6, 7]
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot(x, y, zs=0, zdir='z', label='Outer Circular Base')
+    theta = np.linspace(np.pi/2, -np.pi/2, 100)
+    rx = ( 3.5 + y ) * np.cos(theta)
+    ry = ( 3.5 + y ) * np.sin(theta)
 
-
+    ltheta = np.linspace(np.pi/2, 3 * np.pi/2, 100)
+    lx = ( 3.5 + y ) * np.cos(ltheta)
+    ly = ( 3.5 + y ) * np.sin(ltheta)
+    tx = np.append(rx, np.flip(lx))
+    ty = np.append(ry, np.flip(ly))
+    
     # Show the plot
-    plt.show()
-    return x, y, z
+    # plt.show()
+    return tx, ty, z
 
 # Function to plot brain wave
 def plot_brain_wave():
     x, y, z = fetch_brain_wave_data()
 
     # Create a 3D plot
-    fig = plt.Figure()
+    # fig = plt.Figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.plot_surface(x, y, z, cmap='viridis')
+    fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot_surface(x, y, z, cmap='viridis')
-
+    ax.plot(x, y, zs=0, zdir='z', label='Outer Circular Base')
     # Update the canvas
     canvas.get_tk_widget().pack_forget()
     canvas.__init__(fig, master=root)  # Re-initialize canvas
