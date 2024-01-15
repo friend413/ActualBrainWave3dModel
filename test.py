@@ -1,16 +1,25 @@
+from stl import mesh
 import numpy as np
-import matplotlib.pyplot as plt
-# import surf2stl
 
-# create x,y,z data for 3d surface plot
-x = np.linspace(-6, 6, 30)
-y = np.linspace(-6, 6, 30)
-X, Y = np.meshgrid(x, y)
-Z = np.sin(np.sqrt(X ** 2 + Y ** 2))
-ax = plt.axes(projection='3d')
-ax.plot_surface(X, Y, Z, rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-ax.set_title('surface')
+x = [0,1,2,0]
+y = [0,2,0,1]
+z = [1,1,1,2]
 
-plt.show()
-# surf2stl.write('3d-sinusoidal.stl', X, Y, Z)
+i = [0,0,0]
+j = [1,2,1]
+k = [2,3,3]
+
+vertices = np.array([[x[n], y[n], z[n]] for n in range(len(x))])
+
+# Convert to faces
+faces = np.array([[i[n], j[n], k[n]] for n in range(len(i))])
+
+# Create the mesh
+mesh_data = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+
+for i, f in enumerate(faces):
+    for j in range(3):
+        mesh_data.vectors[i][j] = vertices[f[j],:]
+
+# Save the mesh as an STL file
+mesh_data.save('my_mesh.stl')
