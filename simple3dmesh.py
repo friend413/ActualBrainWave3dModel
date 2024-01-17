@@ -3,6 +3,7 @@ import numpy as np
 from stl import mesh
 from mpl_toolkits import mplot3d
 import os
+import vtk
 
 # Input Data & you should change this part
 rdata = [0.3, 0.18, 0.58, 0.86, 0.96, 0.58, 0.86, 0.18, 0.22, 0.85, 0.58, 0.16, 0.07, 0.44, 0.75, 0.19, 0.7, 0.59, 0.32, 0.97, 0.12, 0.57, 0.01, 0.19, 0.12, 0.8, 0.87, 0.37, 0.93, 0.71, 0.64, 0.23, 0.46, 0.6, 0.08, 0.27, 0.88, 0.04, 0.75, 0.76, 0.9, 0.66, 0.17, 0.79, 0.95, 0.58, 0.26, 0.83, 0.96, 0.28, 0.2, 0.25, 0.29, 0.6, 0.39, 0.77, 0.64, 0.14, 0.61, 0.16, 0.34, 0.71, 0.26, 0.22, 0.01, 0.93, 0.65, 0.2, 0.48, 0.73, 0.01, 0.5, 0.45, 0.42, 0.21, 0.38, 0.64, 0.71, 0.07, 0.3, 0.0, 0.34, 0.94, 0.87, 0.93, 0.61, 0.21, 0.62, 0.72, 0.02, 0.33, 0.24, 0.83, 0.41, 0.99, 0.86, 0.06, 0.28, 0.47, 0.15]
@@ -206,7 +207,7 @@ meshObj = go.Mesh3d(x=rx, y=ry, z=rz, i=ri, j=rj, k=rk)
 
 # fig = go.Figure(data=[meshObj])
 
-text_mesh = mesh.Mesh.from_file('asset.stl')
+text_mesh = mesh.Mesh.from_file('assets/asset.stl')
 # fig.add_mesh3d(text_mesh.vectors)
 # go.Mesh3d(text_mesh)
 # fig.update_layout(scene=dict(xaxis_title='X Axis',
@@ -234,3 +235,25 @@ for i, f in enumerate( text_mesh.vectors ):
         mesh_data.vectors[i + org ][j] = f[j]
 # Save the mesh as an STL file
 mesh_data.save('my_mesh.stl')
+
+# View
+
+reader = vtk.vtkSTLReader()
+reader.SetFileName("my_mesh.stl")
+
+mapper = vtk.vtkPolyDataMapper()
+
+mapper.SetInputConnection(reader.GetOutputPort())
+actor = vtk.vtkActor()
+actor.SetMapper(mapper)
+renderer = vtk.vtkRenderer()
+renderWindow = vtk.vtkRenderWindow()
+
+renderWindow.AddRenderer(renderer)
+
+renderWindowInteractor = vtk.vtkRenderWindowInteractor()
+renderWindowInteractor.SetRenderWindow(renderWindow)
+renderer.AddActor(actor)
+renderer.SetBackground(1, 1, 1) # Background color
+renderWindow.Render()
+renderWindowInteractor.Start() 
